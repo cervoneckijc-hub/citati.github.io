@@ -3,561 +3,575 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>CiTaTi | Генератор глибоких цитат</title>
-    <!-- Підключення Tailwind CSS -->
+    <title>Minecraft Bank - Smart ID</title>
     <script src="https://cdn.tailwindcss.com"></script>
-    <!-- Налаштування шрифту Inter та конфігурація Tailwind -->
+    <link href="https://fonts.googleapis.com/css2?family=VT323&display=swap" rel="stylesheet">
+    
     <script>
         tailwind.config = {
             theme: {
                 extend: {
-                    colors: {
-                        'primary': '#4F46E5', // Indigo-600
-                        'secondary': '#E0E7FF', // Indigo-100
-                        'accent': '#10B981', // Emerald-500
-                        'like': '#EF4444', // Red-500 (Серце - червоний)
-                        'dislike': '#4B5563', // Gray-600 (Палець вниз - сірий)
-                        'hyper': '#DC2626', // Red-600
-                    },
                     fontFamily: {
-                        sans: ['Inter', 'sans-serif'],
+                        'mc': ['"VT323"', 'monospace'],
                     },
+                    colors: {
+                        mc: {
+                            bg: '#111111',
+                            panel: '#C6C6C6',
+                            red: '#be0000',
+                            dark: '#373737',
+                        }
+                    }
                 }
             }
         }
     </script>
-    <!-- Підключення шрифту Inter -->
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700;800&display=swap" rel="stylesheet">
+
     <style>
-        /* Спеціальний стиль для гарної анімації цитати */
-        .quote-box {
-            transition: box-shadow 0.3s ease-in-out, border-color 0.3s ease-in-out;
-            min-height: 150px;
+        body {
+            background-color: #1a1a1a;
+            background-image: radial-gradient(#2c2c2c 15%, transparent 16%), radial-gradient(#2c2c2c 15%, transparent 16%);
+            background-size: 60px 60px;
+            background-position: 0 0, 30px 30px;
+            font-family: 'VT323', monospace;
+            image-rendering: pixelated;
         }
 
-        #quote-display {
-            opacity: 0;
-            transition: opacity 0.5s ease-in-out, transform 0.5s ease-in-out;
-            transform: translateY(10px);
-            color: #1F2937; /* Default gray-800 */
-        }
-        .quote-show {
-            opacity: 1 !important;
-            transform: translateY(0) !important;
-        }
-        .button-shadow {
-            box-shadow: 0 10px 15px -3px rgba(79, 70, 229, 0.5), 0 4px 6px -2px rgba(79, 70, 229, 0.1);
-            transition: all 0.2s ease;
-        }
-        .button-shadow:hover {
-            box-shadow: 0 15px 20px -5px rgba(79, 70, 229, 0.7), 0 6px 10px -3px rgba(79, 70, 229, 0.2);
-            transform: translateY(-2px);
-        }
-
-        /* Анімація мерехтіння для лайку (Зелений акцент, 2.5s) */
-        @keyframes pulse-green {
-            0%, 100% {
-                box-shadow: 0 0 0 0 rgba(16, 185, 129, 0.7); 
-                border-color: rgba(16, 185, 129, 0.2);
-            }
-            50% {
-                box-shadow: 0 0 0 10px rgba(16, 185, 129, 0);
-                border-color: rgba(16, 185, 129, 0.8);
-            }
-        }
-        .pulsating-like {
-            animation: pulse-green 2.5s infinite ease-in-out;
+        .mc-border {
+            border-top: 4px solid #ffffff;
+            border-left: 4px solid #ffffff;
+            border-right: 4px solid #555555;
+            border-bottom: 4px solid #555555;
+            background-color: #C6C6C6;
+            color: #212121;
         }
         
-        /* --- СУПЕР ЦИТАТА: Золоте мерехтіння для вікна цитати (2.5s) --- */
-        @keyframes pulse-gold {
-            0%, 100% {
-                box-shadow: 0 0 0 0 rgba(255, 215, 0, 0.7); /* М'який золотий колір */
-                border-color: rgba(255, 215, 0, 0.2);
-            }
-            50% {
-                box-shadow: 0 0 0 15px rgba(255, 215, 0, 0);
-                border-color: rgba(255, 215, 0, 0.9);
-            }
-        }
-        .pulsating-gold {
-            animation: pulse-gold 2.5s infinite ease-in-out;
-            background-color: #FFFBEB !important; /* Дуже світлий золотистий фон */
+        .mc-border-red {
+            border-top: 4px solid #ff6b6b;
+            border-left: 4px solid #ff6b6b;
+            border-right: 4px solid #550000;
+            border-bottom: 4px solid #550000;
+            background-color: #C6C6C6;
         }
 
-        /* Анімація переливання золотого тексту */
-        @keyframes shimmer {
-            0% {
-                background-position: -100% center;
-            }
-            100% {
-                background-position: 100% center;
-            }
+        .mc-inset {
+            border-top: 3px solid #373737;
+            border-left: 3px solid #373737;
+            border-right: 3px solid #ffffff;
+            border-bottom: 3px solid #ffffff;
+            background-color: #8b8b8b;
         }
 
-        .super-quote-text {
-            /* Золотий градієнт */
-            background: linear-gradient(90deg, #FFDF80 0%, #FFD700 30%, #DAA520 50%, #FFD700 70%, #FFDF80 100%);
-            background-size: 200% auto; 
-            -webkit-background-clip: text;
-            -webkit-text-fill-color: transparent;
-            animation: shimmer 4s infinite linear;
-            font-weight: 700; 
-            font-style: normal; /* Знімаємо курсив для золотого тексту */
-        }
-        
-        /* --- ГІПЕР ЦИТАТА: Червоне мерехтіння для вікна цитати (5s) --- */
-        @keyframes pulse-hyper {
-            0%, 100% {
-                box-shadow: 0 0 0 0 rgba(220, 38, 38, 0.7); /* Червоний колір */
-                border-color: rgba(220, 38, 38, 0.2);
-            }
-            50% {
-                box-shadow: 0 0 0 20px rgba(220, 38, 38, 0);
-                border-color: rgba(220, 38, 38, 0.9);
-            }
-        }
-        .pulsating-hyper {
-            animation: pulse-hyper 5s infinite ease-in-out;
-            background-color: #FEE2E2 !important; /* Дуже світлий червоний фон */
-        }
-
-        .hyper-quote-text {
-            color: #DC2626; /* Червоний колір тексту */
-            font-weight: 800;
-            font-style: italic; 
-        }
-
-        /* ----------------------------------------------- */
-
-
-        /* Стиль для іконок лайку/дизлайку */
-        .vote-icon {
+        .mc-btn {
+            background-color: #999999;
+            border-top: 3px solid #ffffff;
+            border-left: 3px solid #ffffff;
+            border-right: 3px solid #373737;
+            border-bottom: 3px solid #373737;
             cursor: pointer;
-            transition: transform 0.1s ease, color 0.2s ease, box-shadow 0.2s ease;
+            transition: all 0.1s;
         }
-        .vote-icon:active {
-            transform: scale(0.9);
+        .mc-btn:active {
+            border-top: 3px solid #373737;
+            border-left: 3px solid #373737;
+            border-right: 3px solid #ffffff;
+            border-bottom: 3px solid #ffffff;
+            background-color: #777777;
         }
 
-        /* Стилі для режиму відображення */
-        .mode-button {
-            transition: color 0.2s ease;
+        .mc-btn-red {
+            background-color: #c0392b;
+            color: white;
+            border-color: #e74c3c #7f0000 #7f0000 #e74c3c;
         }
-        /* Ширина контейнера за замовчуванням (ПК/Desktop) */
-        .desktop-mode {
-            max-width: 4xl; /* max-w-4xl */
-            padding-left: 3rem; /* p-12 */
-            padding-right: 3rem; /* p-12 */
+        .mc-btn-red:active {
+            background-color: #a93226;
+            border-color: #7f0000 #e74c3c #e74c3c #7f0000;
         }
-        /* Ширина контейнера для мобільного режиму */
-        .mobile-mode {
-            max-width: 384px; /* max-w-sm */
-            padding-left: 1rem; /* p-4 */
-            padding-right: 1rem; /* p-4 */
+
+        .mc-btn-green {
+            background-color: #27ae60;
+            color: white;
+            border-color: #2ecc71 #145a32 #145a32 #2ecc71;
         }
-        
+
+        .modal-overlay {
+            background-color: rgba(0, 0, 0, 0.7);
+            backdrop-filter: blur(2px);
+        }
+
+        ::-webkit-scrollbar { width: 12px; }
+        ::-webkit-scrollbar-track { background: #212121; }
+        ::-webkit-scrollbar-thumb { background: #C6C6C6; border: 2px solid #212121; }
+
+        .frozen-overlay {
+            background: repeating-linear-gradient(
+                45deg,
+                rgba(0, 255, 255, 0.1),
+                rgba(0, 255, 255, 0.1) 10px,
+                rgba(0, 200, 255, 0.1) 10px,
+                rgba(0, 200, 255, 0.1) 20px
+            );
+        }
     </style>
 </head>
-<body class="bg-gray-50 min-h-screen flex flex-col items-center justify-center p-4 font-sans">
-    
-    <!-- Кнопки перемикання режиму -->
-    <div class="fixed top-4 right-4 flex space-x-3 z-20">
-        <!-- Комп'ютер (Desktop) -->
-        <button id="desktop-mode-button" class="mode-button text-primary hover:text-indigo-800" title="Комп'ютерна версія">
-            <!-- Іконка Комп'ютер -->
-            <svg class="w-7 h-7" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
-                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9.75 17L9 20l-1 1h8l-1-1-1-3m0-13V4a1 1 0 00-1-1H7a1 1 0 00-1 1v2m2 4h.01M6 18h12a2 2 0 002-2V7a2 2 0 00-2-2H6a2 2 0 00-2 2v9a2 2 0 002 2z"></path>
-            </svg>
-        </button>
+<body class="min-h-screen flex items-center justify-center p-4">
 
-        <!-- Телефон (Mobile) -->
-        <button id="mobile-mode-button" class="mode-button text-gray-400 hover:text-indigo-800" title="Мобільна версія">
-            <!-- Іконка Телефон -->
-            <svg class="w-7 h-7" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
-                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 18h.01M7 21h10a2 2 0 002-2V5a2 2 0 00-2-2H7a2 2 0 00-2 2v14a2 2 0 002 2z"></path>
-            </svg>
-        </button>
-    </div>
-
-
-    <div id="main-card" class="w-full bg-white rounded-3xl shadow-2xl p-6 sm:p-10 lg:p-12 space-y-10 transition-all duration-500 max-w-4xl">
-
-        <!-- Header та Опис Сайту -->
-        <header class="text-center space-y-4">
-            <h1 id="site-title" class="text-5xl sm:text-6xl font-extrabold text-primary tracking-tight transition-all duration-300">
-                CiTaTi
+    <!-- Container -->
+    <div id="app-container" class="w-full max-w-md transition-all duration-300 relative">
+        
+        <!-- HEADER -->
+        <div class="text-center mb-6">
+            <h1 class="text-5xl text-white drop-shadow-[4px_4px_0_rgba(0,0,0,1)] tracking-widest">
+                <span class="text-[#3498db]">DIA</span>BANK
             </h1>
-            <p class="text-xl text-gray-600 max-w-2xl mx-auto">
-                Ваш щоденний генератор глибоких та надихаючих цитат. Знайдіть свій новий погляд на світ!
-            </p>
-            <div class="w-24 h-1 bg-accent mx-auto rounded-full"></div>
-        </header>
+            <p id="app-subtitle" class="text-gray-400 text-xl mt-2">Server Economy v3.2</p>
+        </div>
 
-        <!-- Генератор Цитат -->
-        <main class="text-center space-y-8">
-            <!-- Вікно цитати -->
-            <div id="quote-box" class="quote-box bg-secondary p-6 sm:p-8 rounded-2xl border-2 border-primary/20 flex items-center justify-center">
-                <p id="quote-display" class="text-2xl sm:text-3xl font-semibold text-gray-800 italic transition duration-500">
-                    Натисніть кнопку, щоб згенерувати першу цитату.
-                </p>
+        <!-- NOTIFICATION TOAST -->
+        <div id="toast" class="hidden fixed top-5 right-5 z-50 mc-border p-2 bg-[#1e1e1e] text-white border-2 border-white max-w-xs shadow-lg">
+            <div class="flex items-center gap-2">
+                <span id="toast-icon" class="text-yellow-400 font-bold">!</span>
+                <span id="toast-msg">Повідомлення</span>
             </div>
-            
-            <!-- Блок для Лайку та Дизлайку -->
-            <div class="flex items-center justify-center space-x-12 pt-4">
-                
-                <!-- Лайк (Серце) -->
-                <button id="like-button" class="vote-icon p-3 rounded-full hover:bg-red-100 transition-colors" title="Лайк: відмінна цитата">
-                    <svg id="like-icon" class="w-10 h-10 text-like transition-colors duration-500" fill="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
-                        <!-- Іконка Серце -->
-                        <path fill-rule="evenodd" d="M12 21.35l-1.45-1.32C5.4 15.36 2 12.28 2 8.5 2 5.42 4.42 3 7.5 3c1.74 0 3.41.81 4.5 2.09C13.09 3.81 14.76 3 16.5 3 19.58 3 22 5.42 22 8.5c0 3.78-3.4 6.86-8.55 11.54L12 21.35z" clip-rule="evenodd"/>
-                    </svg>
+        </div>
+
+        <!-- --- MODALS --- -->
+        
+        <!-- Balance Modal -->
+        <div id="balance-modal" class="hidden fixed inset-0 z-50 flex items-center justify-center modal-overlay">
+            <div class="mc-border-red p-1 shadow-2xl w-80">
+                <div class="bg-[#C6C6C6] p-4 flex flex-col gap-4">
+                    <h3 class="text-2xl font-bold text-[#373737] text-center">ЗМІНА БАЛАНСУ</h3>
+                    <p class="text-center text-lg" id="balance-modal-user">User: ???</p>
+                    <input type="number" id="admin-amount-input" class="mc-inset w-full p-2 text-2xl text-white outline-none" placeholder="0">
+                    <div class="flex gap-2">
+                        <button onclick="confirmBalanceChange(1)" class="mc-btn-green w-1/2 py-2 text-xl font-bold border-2">+ ДОДАТИ</button>
+                        <button onclick="confirmBalanceChange(-1)" class="mc-btn-red w-1/2 py-2 text-xl font-bold border-2">- ЗНЯТИ</button>
+                    </div>
+                    <button onclick="closeModals()" class="mc-btn w-full py-1 text-lg font-bold">СКАСУВАТИ</button>
+                </div>
+            </div>
+        </div>
+
+        <!-- Delete Modal -->
+        <div id="delete-modal" class="hidden fixed inset-0 z-50 flex items-center justify-center modal-overlay">
+            <div class="mc-border-red p-1 shadow-2xl w-80">
+                <div class="bg-[#C6C6C6] p-4 flex flex-col gap-4">
+                    <h3 class="text-2xl font-bold text-red-900 text-center">⚠️ УВАГА ⚠️</h3>
+                    <p class="text-center text-xl leading-tight">Ви точно хочете видалити цей акаунт?</p>
+                    <button onclick="confirmDeleteUser()" class="mc-btn-red w-full py-3 text-2xl font-bold border-2 shadow-lg">ТАК, ВИДАЛИТИ</button>
+                    <button onclick="closeModals()" class="mc-btn w-full py-2 text-xl font-bold">НІ, НАЗАД</button>
+                </div>
+            </div>
+        </div>
+
+        <!-- --- SCREENS --- -->
+
+        <!-- AUTH -->
+        <div id="auth-screen" class="mc-border p-1 shadow-[8px_8px_0_rgba(0,0,0,0.5)]">
+            <div class="bg-[#C6C6C6] p-6 flex flex-col gap-4">
+                <div class="text-center mb-2">
+                    <h2 class="text-3xl font-bold text-[#373737]">АВТОРИЗАЦІЯ</h2>
+                </div>
+                <div class="flex flex-col gap-1">
+                    <label class="text-xl text-[#373737]">Нікнейм:</label>
+                    <input type="text" id="username-input" class="mc-inset w-full p-3 text-2xl text-white placeholder-gray-300 outline-none font-mc" placeholder="Steve">
+                </div>
+                <div class="flex flex-col gap-1">
+                    <label class="text-xl text-[#373737]">Пароль:</label>
+                    <input type="password" id="password-input" class="mc-inset w-full p-3 text-2xl text-white placeholder-gray-300 outline-none font-mc" placeholder="******">
+                </div>
+                <button onclick="handleAuth()" class="mc-btn w-full p-3 text-2xl font-bold text-[#373737] hover:text-black mt-4 border-2">
+                    ВХІД / РЕЄСТРАЦІЯ
                 </button>
-                
-                <!-- Дизлайк (Палець вниз) -->
-                <button id="dislike-button" class="vote-icon p-3 rounded-full hover:bg-gray-200 transition-colors" title="Дизлайк: згенерувати нову">
-                    <svg class="w-10 h-10 text-dislike" fill="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
-                        <!-- Іконка Палець вниз -->
-                        <path d="M12.449 22.827c-.23.111-.476.173-.729.173-1.077 0-2.03-.667-2.457-1.638l-.634-1.442-1.996 1.996c-.39.39-1.023.39-1.414 0-.39-.39-.39-1.023 0-1.414l2.121-2.121-1.638-1.638c-.39-.39-.39-1.023 0-1.414.39-.39 1.023-.39 1.414 0l1.638 1.638 1.442-.634c.971-.427 1.638-1.38 1.638-2.457V4c0-.553.447-1 1-1h6c.553 0 1 .447 1 1v12c0 .553-.447 1-1 1h-6.173c-.55 0-1.075.226-1.465.615l-1.362 1.362-1.354 1.354zM20 5v10h-5V5h5zm-6 0v10h-2V5h2z"/>
-                    </svg>
-                </button>
             </div>
-            
-            <button id="generate-button" class="button-shadow bg-primary text-white text-lg font-bold py-3 px-8 rounded-full hover:bg-indigo-700 active:bg-indigo-800 focus:outline-none focus:ring-4 focus:ring-primary/50 transform transition duration-150 ease-in-out mt-4">
-                Згенерувати Нову Цитату
-            </button>
-            
-            <!-- Лічильники -->
-            <div class="mt-4 text-center flex justify-center space-x-8 flex-wrap">
-                <div class="mb-2 sm:mb-0">
-                    <p class="text-md text-gray-500">
-                        Згенеровано цитат: <span id="quote-count-display" class="font-extrabold text-primary text-xl">0</span>
-                    </p>
-                </div>
-                <div class="mb-2 sm:mb-0">
-                    <p class="text-md text-gray-500">
-                        Знайдено Супер Цитат: <span id="super-quote-count-display" class="font-extrabold text-yellow-600 text-xl">0</span>
-                    </p>
-                </div>
-                <div class="mb-2 sm:mb-0">
-                    <p class="text-md text-gray-500">
-                        Знайдено Гіпер Цитат: <span id="hyper-quote-count-display" class="font-extrabold text-hyper text-xl">0</span>
-                    </p>
+        </div>
+
+        <!-- DASHBOARD -->
+        <div id="dashboard-screen" class="hidden flex flex-col gap-6">
+            <div class="mc-border p-1 shadow-[8px_8px_0_rgba(0,0,0,0.5)]">
+                <div class="bg-[#C6C6C6] p-4 flex justify-between items-center relative overflow-hidden">
+                    <div id="frozen-badge" class="hidden absolute top-0 right-0 bg-blue-500 text-white text-xs px-2 py-1 font-bold z-10">FROZEN</div>
+                    <div>
+                        <h3 id="display-username" class="text-3xl font-bold text-[#373737]">Player</h3>
+                        <div class="flex items-center gap-2 mt-1">
+                            <span class="text-lg text-gray-600">ID:</span>
+                            <span id="display-wallet-id" class="bg-[#373737] text-white px-2 py-0.5 text-lg font-mono tracking-wider">#LOADING</span>
+                        </div>
+                    </div>
+                    <button onclick="logout()" class="mc-btn px-4 py-2 text-xl text-red-900 font-bold hover:bg-red-300">ВИЙТИ</button>
                 </div>
             </div>
 
-            <p id="author-display" class="text-lg text-gray-500 font-medium mt-4">
-                — CiTaTi (AI)
-            </p>
-        </main>
+            <div class="mc-border p-1 shadow-[8px_8px_0_rgba(0,0,0,0.5)]">
+                <div class="bg-[#C6C6C6] p-6 flex items-center justify-between">
+                    <div>
+                        <p class="text-xl text-[#373737] uppercase font-bold">Баланс</p>
+                        <p id="display-balance" class="text-6xl font-bold text-[#212121] mt-2">0</p>
+                    </div>
+                    <div class="text-6xl">💎</div>
+                </div>
+            </div>
 
-        <!-- Інформація про CiTaTi -->
-        <section class="border-t border-gray-200 pt-8 mt-10 space-y-4">
-            <h2 class="text-3xl font-bold text-gray-800 text-center">Про CiTaTi</h2>
-            <p class="text-gray-700 text-base leading-relaxed text-center max-w-3xl mx-auto">
-                CiTaTi – це не просто генератор. Це невелика інтелектуальна система, створена для того, щоб стимулювати вашу уяву. Ми використовуємо мінімалістичну, але глибоку базу даних, що складається з понад 100 ключових слів, філософських термінів та синтаксичних шаблонів. Кожне натискання кнопки створює унікальну, випадкову, але синтаксично правильну фразу, яка імітує глибоку думку. Це гра зі змістом, що нагадує про безмежність мови.
-            </p>
-        </section>
+            <div class="mc-border p-1 shadow-[8px_8px_0_rgba(0,0,0,0.5)]">
+                <div class="bg-[#C6C6C6] p-4">
+                    <h3 class="text-2xl font-bold text-[#373737] mb-4 border-b-2 border-[#7f8c8d] pb-1">ПЕРЕКАЗ</h3>
+                    <div class="space-y-4">
+                        <div>
+                            <!-- Оновлений Placeholder -->
+                            <input type="text" id="transfer-target" class="mc-inset w-full p-2 text-xl text-white placeholder-gray-300 outline-none" placeholder="ID (напр. #DIA-1234 або 1234)">
+                        </div>
+                        <div>
+                            <input type="number" id="transfer-amount" class="mc-inset w-full p-2 text-xl text-white placeholder-gray-300 outline-none" placeholder="Кількість">
+                        </div>
+                        <button id="transfer-btn" onclick="makeTransfer()" class="mc-btn w-full py-3 text-2xl font-bold text-[#1E8449] mt-2 flex justify-center items-center gap-2 hover:bg-[#aab7b8]">
+                            <span>НАДІСЛАТИ</span> <span>💎</span>
+                        </button>
+                    </div>
+                </div>
+            </div>
+
+            <div class="mc-border p-1 shadow-[8px_8px_0_rgba(0,0,0,0.5)]">
+                <div class="bg-[#C6C6C6] p-4 min-h-[150px]">
+                    <h3 class="text-2xl font-bold text-[#373737] mb-2 border-b-2 border-[#7f8c8d] pb-1">ІСТОРІЯ</h3>
+                    <ul id="history-list" class="flex flex-col gap-2 max-h-[150px] overflow-y-auto pr-1"></ul>
+                </div>
+            </div>
+        </div>
+
+        <!-- ADMIN PANEL -->
+        <div id="admin-screen" class="hidden w-full">
+            <div class="mc-border-red p-1 shadow-[8px_8px_0_rgba(0,0,0,0.5)]">
+                <div class="bg-[#C6C6C6] p-4">
+                    <div class="flex justify-between items-center mb-4 border-b-4 border-red-800 pb-2">
+                        <h2 class="text-3xl font-bold text-red-900">OPERATOR PANEL</h2>
+                        <button onclick="logout()" class="mc-btn px-4 py-1 text-lg font-bold">LOGOUT</button>
+                    </div>
+                    <div class="flex flex-col gap-4 max-h-[60vh] overflow-y-auto pr-2" id="admin-user-list"></div>
+                </div>
+            </div>
+        </div>
 
     </div>
 
-    <footer class="mt-8 text-sm text-gray-400">
-        &copy; 2025 CiTaTi. З любов'ю до слів.
-    </footer>
-
+    <!-- LOGIC -->
     <script>
-        // Глобальні змінні та елементи DOM
-        const quoteDisplay = document.getElementById('quote-display');
-        const generateButton = document.getElementById('generate-button');
-        const authorDisplay = document.getElementById('author-display');
-        const quoteCountDisplay = document.getElementById('quote-count-display');
-        const superQuoteCountDisplay = document.getElementById('super-quote-count-display');
-        const hyperQuoteCountDisplay = document.getElementById('hyper-quote-count-display');
-        const likeButton = document.getElementById('like-button');
-        const dislikeButton = document.getElementById('dislike-button');
-        const siteTitle = document.getElementById('site-title');
-        const quoteBox = document.getElementById('quote-box');
-        const likeIcon = document.getElementById('like-icon');
-        const mainCard = document.getElementById('main-card');
-        const desktopModeButton = document.getElementById('desktop-mode-button');
-        const mobileModeButton = document.getElementById('mobile-mode-button');
+        const DB_KEY = 'mc_bank_users_v3';
+        const ADMIN_CREDS = { user: 'ADMIN', pass: '09800989' };
         
-        let quoteCount = 0; // Лічильник згенерованих цитат
-        let superQuoteCount = 0; // Лічильник супер цитат
-        let hyperQuoteCount = 0; // Лічильник гіпер цитат
-        let isGenerating = false; // Блокування кнопки на час затримки
+        let currentUser = null;
+        let isAdmin = false;
+        let targetUserId = null; 
 
-        // База слів та шаблонів (Звичайні цитати)
-        const QUOTE_DATA = {
-            NOUNS: [
-                "Життя", "Час", "Світло", "Тінь", "Мрія", "Слово", "Тиша", "Душа", "Серце", "Шлях",
-                "Правда", "Істина", "Доля", "Кохання", "Страх", "Надія", "Зміна", "Простір", "Ніщо", "Всесвіт",
-                "Ранок", "Вечір", "Крок", "Погляд", "Спогад", "Свідомість", "Свобода", "Глибина", "Корінь", "Початок",
-                "Відлуння", "Мудрість", "Сумнів", "Рішення", "Мета", "Дія", "Спокій", "Зоря", "Обітниця", "Пізнання"
-            ],
-            ADJECTIVES: [
-                "Вічний", "Глибокий", "Справжній", "Незламний", "Яскравий", "Порожній", "Мудрий", "Таємний", "Далекий", "Важливий",
-                "Холодний", "Теплий", "Невидимий", "Срібний", "Золотий", "Незбагненний", "Вільний", "Миттєвий", "Наш", "Чужий",
-                "Тихий", "Швидкий", "Легкий", "Складний", "Простий", "Зниклий", "Відкритий", "Прихований", "Особистий", "Безмежний"
-            ],
-            VERBS: [
-                "Створити", "Зрозуміти", "Шукати", "Відчути", "Пам'ятати", "Забути", "Надихати", "Світити", "Мовчати", "Летіти",
-                "Зникати", "Відкривати", "Тримати", "Бачити", "Жити", "Дихати", "Рости", "Руйнувати", "Будувати", "Знати",
-                "Торкатися", "Слухати", "Співати", "Боротися", "Миритися", "Змінювати", "Визнавати", "Відпускати", "Приймати", "Чекати"
-            ],
-            PHRASES: [
-                "це лише початок.", "кінець завжди близько.", "усередині нас.", "поза межами розуміння.", "ніколи не повернеться.",
-                "як тихий шепіт.", "єдиний вихід.", "просто існує.", "завжди буде.", "особистий вибір.",
-                "єдине, що має значення.", "це мистецтво.", "мов дим.", "і це є прекрасно.", "у кожній деталі.",
-                "і це його ціна.", "більше, ніж думаєш.", "навіть у темряві.", "нічого не змінить.", "це міст до майбутнього."
-            ]
-        };
-
-        // Шаблони цитат
-        const TEMPLATES = [
-            "[$ADJECTIVES] $NOUNS може $VERBS тільки тоді, коли ти $VERBS $PHRASES",
-            "Кожен $NOUNS — це $ADJECTIVES $NOUNS на $ADJECTIVES $NOUNS.",
-            "Правда в тому, що $NOUNS завжди $ADJECTIVES. $PHRASES",
-            "Якщо ти $VERBS $NOUNS, ти $VERBS і $PHRASES",
-            "[$ADJECTIVES] $NOUNS не існує без $ADJECTIVES $NOUNS.",
-            "Лише той, хто $VERBS $NOUNS, зможе $VERBS $PHRASES",
-            "Не $VERBS $NOUNS, бо це $ADJECTIVES $NOUNS.",
-            "Справжнє $ADJECTIVES $NOUNS починається, коли $NOUNS перестає $VERBS.",
-            "За $NOUNS завжди стоїть $ADJECTIVES $NOUNS. $PHRASES",
-            "Ми всі $ADJECTIVES $NOUNS, які $VERBS заради $PHRASES"
-        ];
-        
-        // Супер Цитати (5% вірогідності)
-        const SUPER_QUOTES = [
-            { text: "Життя — це не очікування, коли закінчиться буря, а навчання, як танцювати під дощем.", author: "Вівіан Грін" },
-            { text: "Найглибша істина знайдена у тиші між двома думками. Знайди свій власний космос.", author: "Невідомий філософ" },
-            { text: "Ти — світ, і світ — це ти. Уся магія починається з розуміння цього.", author: "Лао-цзи (модифіковано)" },
-            { text: "Справжня подорож не в пошуку нових пейзажів, а в отриманні нових очей.", author: "Марсель Пруст" },
-            { text: "Все, що ми бачимо чи здається нам, — лише сон усередині сну. Або пробудження?", author: "Едгар Аллан По (модифіковано)" }
-        ];
-
-        // Гіпер Цитати (1% вірогідності) - Змінено формат автора на І.Прізвище
-        const HYPER_QUOTES = [
-            { text: "Два всесвіти, які найбільш надихають, — це зіркове небо над нами і моральний закон усередині нас.", author: "Іммануїл Кант", initials: "І.Кант", country_flag: "🇩🇪" },
-            { text: "Життя людини має цінність до тих пір, поки вона цінує життя інших, допомагаючи їм, як допомагає світу.", author: "Симона де Бовуар", initials: "С.Бовуар", country_flag: "🇫🇷" },
-            { text: "Єдиний спосіб зробити велику роботу — це любити те, що ви робите.", author: "Стів Джобс", initials: "С.Джобс", country_flag: "🇺🇸" },
-            { text: "Будьте зміною, яку ви хочете бачити у світі.", author: "Махатма Ганді", initials: "М.Ганді", country_flag: "🇮🇳" },
-            { text: "Я не зазнав поразки. Я щойно знайшов 10 000 способів, які не спрацюють.", author: "Томас Едісон", initials: "Т.Едісон", country_flag: "🇺🇸" },
-            { text: "Тільки той, хто робить спроби, отримує абсурдні результати.", author: "Альберт Ейнштейн", initials: "А.Ейнштейн", country_flag: "🇩🇪" },
-            { text: "Мета життя — не в тому, щоб бути щасливим, а в тому, щоб бути корисним, бути чесним, бути співчутливим.", author: "Ральф Волдо Емерсон", initials: "Р.Емерсон", country_flag: "🇺🇸" },
-            { text: "Світ зламає кожного, і потім багато хто буде сильний саме у зламаних місцях.", author: "Ернест Гемінгвей", initials: "Е.Гемінгвей", country_flag: "🇺🇸" },
-            { text: "Не важливо, як повільно ви йдете, головне, що ви не зупиняєтеся.", author: "Конфуцій", initials: "К.Конфуцій", country_flag: "🇨🇳" },
-            { text: "Якщо ви хочете піднятися, використовуйте розум. Якщо ви хочете досягти, використовуйте серце.", author: "Мая Анжелу", initials: "М.Анжелу", country_flag: "🇺🇸" },
-            { text: "Свобода — це можливість бути собою.", author: "Пауло Коельо", initials: "П.Коельо", country_flag: "🇧🇷" },
-            { text: "Кожна людина — це всесвіт, який помирає.", author: "Каміло Хосе Села", initials: "К.Села", country_flag: "🇪🇸" },
-            { text: "Сумніви — це зрадники, які змушують нас втрачати те, що ми могли б виграти.", author: "Вільям Шекспір", initials: "В.Шекспір", country_flag: "🇬🇧" },
-            { text: "Ми є те, що ми постійно робимо. Отже, досконалість — це не дія, а звичка.", author: "Арістотель", initials: "А.Арістотель", country_flag: "🇬🇷" },
-            { text: "Надія — це єдиний сніданок, який вартий того, щоб їсти його знову і знову.", author: "Лорд Байрон", initials: "Л.Байрон", country_flag: "🇬🇧" },
-            { text: "Людина не може відкрити нові океани, поки не набереться сміливості втратити з поля зору берег.", author: "Андре Жід", initials: "А.Жід", country_flag: "🇫🇷" },
-            { text: "Краса не в обличчі, краса — це світло в серці.", author: "Халіл Джебран", initials: "Х.Джебран", country_flag: "🇱🇧" },
-            { text: "Розум — це не посудина, яку потрібно заповнити, а факел, який потрібно запалити.", author: "Плутарх", initials: "П.Плутарх", country_flag: "🇬🇷" },
-            { text: "Мистецтво жити більше схоже на боротьбу, ніж на танець.", author: "Марк Аврелій", initials: "М.Аврелій", country_flag: "🇮🇹" },
-            { text: "Не бійся помилок. Бійся тільки того, що ти їх не виправляєш.", author: "Конфуцій", initials: "К.Конфуцій", country_flag: "🇨🇳" }
-        ];
-
-
-        // Функція для отримання випадкового елемента з масиву
-        function getRandomElement(arr) {
-            return arr[Math.floor(Math.random() * arr.length)];
+        // --- CORE ---
+        function getUsersDB() {
+            const data = localStorage.getItem(DB_KEY);
+            return data ? JSON.parse(data) : {};
         }
 
-        // Функція для скидання анімації лайку та супер/гіпер цитати
-        function resetAnimations() {
-            // Скидаємо зелене мерехтіння (лайк)
-            likeIcon.classList.remove('pulsating-like');
-            generateButton.classList.remove('pulsating-like');
-            siteTitle.classList.remove('text-like');
-            siteTitle.classList.add('text-primary');
+        function saveUsersDB(db) {
+            localStorage.setItem(DB_KEY, JSON.stringify(db));
+        }
+
+        function generateWalletId(db) {
+            let id;
+            do {
+                const num = Math.floor(1000 + Math.random() * 9000);
+                id = `#DIA-${num}`;
+            } while (Object.values(db).find(u => u.walletId === id));
+            return id;
+        }
+
+        function showToast(msg, isError = false) {
+            const toast = document.getElementById('toast');
+            const toastMsg = document.getElementById('toast-msg');
+            const toastIcon = document.getElementById('toast-icon');
             
-            // Скидаємо мерехтіння з вікна цитати
-            quoteBox.classList.remove('pulsating-gold', 'pulsating-hyper', 'pulsating-like');
-            
-            // Скидаємо стилі тексту
-            quoteDisplay.classList.remove('super-quote-text', 'hyper-quote-text');
-            quoteDisplay.classList.add('italic');
-            quoteDisplay.style.color = '#1F2937'; // Default text color
-        }
-        
-        // Функція для перевірки на Супер Цитату (5%)
-        function isSuperQuoteTime() {
-            return Math.random() < 0.05; 
+            toast.className = `fixed top-5 right-5 z-50 mc-border p-2 border-2 max-w-xs shadow-lg transition-opacity duration-300 ${isError ? 'bg-[#370000] border-red-500 text-red-100' : 'bg-[#1e1e1e] border-white text-white'}`;
+            toastMsg.innerText = msg;
+            toastIcon.innerText = isError ? "✕" : "!";
+            toast.classList.remove('hidden');
+            setTimeout(() => { toast.classList.add('hidden'); }, 3000);
         }
 
-        // Функція для перевірки на Гіпер Цитату (1%)
-        function isHyperQuoteTime() {
-            return Math.random() < 0.01; 
-        }
+        // --- AUTH ---
+        function handleAuth() {
+            const username = document.getElementById('username-input').value.trim();
+            const password = document.getElementById('password-input').value.trim();
 
-        // Функція для створення цитати
-        function generateQuote() {
-            if (isGenerating) return; // Блокування, якщо триває затримка
+            if (!username || !password) { showToast("Заповніть всі поля!", true); return; }
 
-            resetAnimations();
-            
-            // 1. Приховати та змінити клас для анімації
-            quoteDisplay.classList.remove('quote-show');
-            generateButton.disabled = true;
-            generateButton.textContent = 'Генеруємо...';
-            isGenerating = true;
-
-            setTimeout(() => {
-                let newQuoteData;
-                let isHyper = false;
-                let isSuper = false;
-
-                // 2. Перевірка на Гіпер Цитату (найвищий пріоритет: 1%)
-                if (isHyperQuoteTime()) {
-                    newQuoteData = getRandomElement(HYPER_QUOTES);
-                    isHyper = true;
-                    hyperQuoteCount++;
-                    hyperQuoteCountDisplay.textContent = hyperQuoteCount;
-                    
-                    // Застосовуємо червоне мерехтіння та стиль тексту
-                    quoteBox.classList.add('pulsating-hyper');
-                    quoteDisplay.classList.add('hyper-quote-text');
-                    
-                    console.log("💥 ГІПЕР ЦИТАТА ЗНАЙДЕНА! 💥");
-                } 
-                // 3. Перевірка на Супер Цитату (середній пріоритет: 5%)
-                else if (isSuperQuoteTime()) {
-                    newQuoteData = getRandomElement(SUPER_QUOTES);
-                    isSuper = true;
-                    superQuoteCount++;
-                    superQuoteCountDisplay.textContent = superQuoteCount;
-                    
-                    // Застосовуємо золоте мерехтіння та стиль тексту
-                    quoteBox.classList.add('pulsating-gold');
-                    quoteDisplay.classList.add('super-quote-text');
-                    quoteDisplay.classList.remove('italic'); 
-                    
-                    console.log("🔥 СУПЕР ЦИТАТА ЗГЕНЕРОВАНА! 🔥");
-                } 
-                // 4. Звичайна генерація
-                else {
-                    let template = getRandomElement(TEMPLATES);
-                    let newQuoteText = template;
-                    newQuoteText = newQuoteText.replace(/\$NOUNS/g, () => getRandomElement(QUOTE_DATA.NOUNS));
-                    newQuoteText = newQuoteText.replace(/\$ADJECTIVES/g, () => getRandomElement(QUOTE_DATA.ADJECTIVES));
-                    newQuoteText = newQuoteText.replace(/\$VERBS/g, () => getRandomElement(QUOTE_DATA.VERBS));
-                    newQuoteText = newQuoteText.replace(/\$PHRASES/g, () => getRandomElement(QUOTE_DATA.PHRASES));
-                    newQuoteText = newQuoteText.replace(/\[|\]/g, ''); 
-                    
-                    // Форматування
-                    newQuoteText = newQuoteText.charAt(0).toUpperCase() + newQuoteText.slice(1);
-                    newQuoteData = { text: newQuoteText, author: "CiTaTi (AI)" };
-                }
-                
-                // 5. Оновити лічильник загальних цитат
-                quoteCount++;
-                quoteCountDisplay.textContent = quoteCount;
-                
-                // 6. Оновити DOM
-                quoteDisplay.textContent = newQuoteData.text;
-                
-                // Форматування автора: І. Прізвище 🏳️ для Гіпер Цитат
-                if (isHyper) {
-                    // Формат: І.Прізвище 🏳️ (ГІПЕР!)
-                    authorDisplay.textContent = `— ${newQuoteData.initials} ${newQuoteData.country_flag} (ГІПЕР!)`;
-                } else if (isSuper) {
-                    authorDisplay.textContent = `— ${newQuoteData.author} (Скарб)`;
+            // Admin Check
+            if (username === ADMIN_CREDS.user) {
+                if (password === ADMIN_CREDS.pass) {
+                    isAdmin = true;
+                    currentUser = { username: 'ADMIN' };
+                    showToast("Operator permissions granted.");
+                    document.getElementById('app-subtitle').innerText = "OP MODE ENABLED";
+                    document.getElementById('app-subtitle').classList.add("text-red-500", "font-bold");
+                    switchScreen('admin');
+                    renderAdminPanel();
                 } else {
-                    authorDisplay.textContent = `— ${newQuoteData.author}`;
+                    showToast("ACCESS DENIED", true);
                 }
+                return;
+            }
 
-                // 7. Показати цитату
-                quoteDisplay.classList.add('quote-show');
-                
-                // 8. Логіка затримки: 5 секунд для Гіпер Цитати
-                const delay = isHyper ? 5000 : 0; 
-                
-                setTimeout(() => {
-                    generateButton.disabled = false;
-                    generateButton.textContent = 'Згенерувати Нову Цитату';
-                    isGenerating = false;
-                }, delay);
+            // User Check
+            const db = getUsersDB();
+            let existingUserKey = Object.keys(db).find(k => db[k].username.toLowerCase() === username.toLowerCase());
 
-
-            }, 500); // Затримка для анімації зникнення/появи
+            if (existingUserKey) {
+                const storedUser = db[existingUserKey];
+                if (storedUser.password === password) {
+                    isAdmin = false;
+                    currentUser = storedUser;
+                    showToast(`Вітаємо, ${currentUser.username}!`);
+                    switchScreen('dashboard');
+                    updateDashboard();
+                } else {
+                    showToast("Невірний пароль!", true);
+                }
+            } else {
+                const newWalletId = generateWalletId(db);
+                const newUser = {
+                    username: username,
+                    password: password,
+                    walletId: newWalletId,
+                    balance: 64, 
+                    isFrozen: false, 
+                    history: []
+                };
+                db[newWalletId] = newUser;
+                saveUsersDB(db);
+                isAdmin = false;
+                currentUser = newUser;
+                showToast(`Створено: ${newWalletId}`);
+                switchScreen('dashboard');
+                updateDashboard();
+            }
+            
+            document.getElementById('username-input').value = '';
+            document.getElementById('password-input').value = '';
         }
 
-        // --- Функції перемикання режиму (Мобільний/Комп'ютерний) ---
-        function switchMode(mode) {
-            // Видаляємо всі класи, що стосуються режимів
-            mainCard.classList.remove('max-w-4xl', 'max-w-sm', 'p-12', 'p-4', 'desktop-mode', 'mobile-mode');
+        function logout() {
+            currentUser = null;
+            isAdmin = false;
+            switchScreen('auth');
+            document.getElementById('app-subtitle').innerText = "Server Economy v3.2";
+            document.getElementById('app-subtitle').classList.remove("text-red-500", "font-bold");
+            showToast("Ви вийшли.");
+        }
 
-            if (mode === 'mobile') {
-                // Встановлюємо мобільний режим
-                mainCard.classList.add('mobile-mode', 'max-w-sm', 'p-4');
-                
-                // Оновлюємо стилі кнопок
-                mobileModeButton.classList.add('text-primary');
-                mobileModeButton.classList.remove('text-gray-400');
-                desktopModeButton.classList.add('text-gray-400');
-                desktopModeButton.classList.remove('text-primary');
+        function switchScreen(screen) {
+            document.getElementById('auth-screen').classList.add('hidden');
+            document.getElementById('dashboard-screen').classList.add('hidden');
+            document.getElementById('admin-screen').classList.add('hidden');
+            document.getElementById('app-container').classList.remove('max-w-4xl'); 
 
-                console.log("Переключено на мобільний режим.");
-            } else {
-                // Встановлюємо комп'ютерний режим
-                mainCard.classList.add('desktop-mode', 'max-w-4xl', 'p-12'); 
-                
-                // Оновлюємо стилі кнопок
-                desktopModeButton.classList.add('text-primary');
-                desktopModeButton.classList.remove('text-gray-400');
-                mobileModeButton.classList.add('text-gray-400');
-                mobileModeButton.classList.remove('text-primary');
-
-                console.log("Переключено на комп'ютерний режим.");
+            if (screen === 'auth') {
+                document.getElementById('auth-screen').classList.remove('hidden');
+            } else if (screen === 'dashboard') {
+                document.getElementById('dashboard-screen').classList.remove('hidden');
+            } else if (screen === 'admin') {
+                document.getElementById('admin-screen').classList.remove('hidden');
+                document.getElementById('app-container').classList.add('max-w-4xl'); 
             }
         }
-        
-        // --- Обробники подій ---
 
-        // Лайк (Серце): підсвічує елементи зеленим мерехтінням (2.5с)
-        likeButton.addEventListener('click', () => {
-            if (isGenerating) return;
+        // --- BANK LOGIC ---
+        function updateDashboard() {
+            if (!currentUser || isAdmin) return;
+            const db = getUsersDB();
+            currentUser = db[currentUser.walletId]; 
+            if(!currentUser) { logout(); return; } 
 
-            resetAnimations(); 
+            document.getElementById('display-username').innerText = currentUser.username;
+            document.getElementById('display-wallet-id').innerText = currentUser.walletId;
+            document.getElementById('display-balance').innerText = currentUser.balance;
 
-            // Додаємо анімацію мерехтіння до елементів
-            likeIcon.classList.add('pulsating-like');
-            generateButton.classList.add('pulsating-like');
-            siteTitle.classList.remove('text-primary');
-            siteTitle.classList.add('text-like');
-            quoteBox.classList.add('pulsating-like');
+            const badge = document.getElementById('frozen-badge');
+            const transferBtn = document.getElementById('transfer-btn');
             
-            // Скидаємо анімацію через 2500 мілісекунд (2.5 секунди)
-            setTimeout(resetAnimations, 2500);
+            if (currentUser.isFrozen) {
+                badge.classList.remove('hidden');
+                transferBtn.classList.add('opacity-50', 'cursor-not-allowed');
+                transferBtn.innerText = "РАХУНОК ЗАМОРОЖЕНО ❄️";
+            } else {
+                badge.classList.add('hidden');
+                transferBtn.classList.remove('opacity-50', 'cursor-not-allowed');
+                transferBtn.innerHTML = "<span>НАДІСЛАТИ</span> <span>💎</span>";
+            }
 
-            console.log(`Цитата №${quoteCount} сподобалася!`);
-        });
+            const list = document.getElementById('history-list');
+            list.innerHTML = '';
+            const hist = [...currentUser.history].reverse();
+            if(hist.length === 0) { list.innerHTML = '<li class="text-center italic opacity-50">Пусто</li>'; }
+            
+            hist.forEach(tx => {
+                const isInc = tx.type === 'in';
+                const li = document.createElement('li');
+                li.className = `${isInc ? 'bg-[#99c2a2]' : 'bg-[#c29999]'} p-2 flex justify-between mc-border border-0`;
+                li.innerHTML = `
+                    <span class="font-bold text-sm">${isInc ? 'From: '+tx.from : 'To: '+tx.to}</span>
+                    <span class="font-bold ${isInc ? 'text-green-900' : 'text-red-900'}">${isInc?'+':'-'}${tx.amount}</span>
+                `;
+                list.appendChild(li);
+            });
+        }
 
-        // Дизлайк (Палець вниз): генерує нову цитату
-        dislikeButton.addEventListener('click', () => {
-            if (isGenerating) return;
-            console.log(`Цитата №${quoteCount} не сподобалася. Генеруємо нову.`);
-            generateQuote();
-        });
+        function makeTransfer() {
+            if (currentUser.isFrozen) { showToast("Рахунок заморожено! Зверніться до адміна.", true); return; }
+            
+            // --- ОНОВЛЕНА ЛОГІКА ВВОДУ ID ---
+            let rawInput = document.getElementById('transfer-target').value.trim().toUpperCase();
+            let targetId = rawInput;
 
-        // Кнопка генерації
-        generateButton.addEventListener('click', generateQuote);
+            // 1. Якщо користувач ввів тільки цифри (напр. "4412")
+            if (/^\d+$/.test(rawInput)) {
+                targetId = `#DIA-${rawInput}`;
+            } 
+            // 2. Якщо користувач ввів "DIA-4412" без решітки
+            else if (rawInput.startsWith('DIA-')) {
+                targetId = `#${rawInput}`;
+            }
+            // --------------------------------
 
-        // Обробники кнопок перемикання режиму
-        desktopModeButton.addEventListener('click', () => switchMode('desktop'));
-        mobileModeButton.addEventListener('click', () => switchMode('mobile'));
-        
-        // Згенерувати цитату та встановити початковий режим при завантаженні
-        window.onload = () => {
-             quoteDisplay.textContent = ""; 
-             generateQuote();
-             // Встановлюємо початковий режим як Desktop
-             switchMode('desktop'); 
-        };
+            const amount = parseInt(document.getElementById('transfer-amount').value);
 
+            if (!targetId || isNaN(amount)) { showToast("Помилка вводу", true); return; }
+            if (amount <= 0) { showToast("Сума має бути > 0", true); return; }
+            if (amount > currentUser.balance) { showToast("Недостатньо коштів", true); return; }
+            if (targetId === currentUser.walletId) { showToast("Не можна собі", true); return; }
+
+            const db = getUsersDB();
+            if (!db[targetId]) { 
+                showToast(`Гравця з ID ${targetId} не знайдено`, true); 
+                return; 
+            }
+
+            const sender = db[currentUser.walletId];
+            const recipient = db[targetId];
+
+            sender.balance -= amount;
+            sender.history.push({ type: 'out', amount, to: recipient.username, date: new Date().toISOString() });
+            
+            recipient.balance += amount;
+            recipient.history.push({ type: 'in', amount, from: sender.username, date: new Date().toISOString() });
+
+            saveUsersDB(db);
+            showToast(`Успішно! Переказано ${recipient.username}`);
+            document.getElementById('transfer-amount').value = '';
+            document.getElementById('transfer-target').value = '';
+            updateDashboard();
+        }
+
+        // --- ADMIN HELPERS ---
+        function openBalanceModal(id) {
+            targetUserId = id;
+            const db = getUsersDB();
+            const u = db[id];
+            document.getElementById('balance-modal-user').innerText = `Гравець: ${u.username} (${u.balance} 💎)`;
+            document.getElementById('admin-amount-input').value = '';
+            document.getElementById('balance-modal').classList.remove('hidden');
+        }
+
+        function openDeleteModal(id) {
+            targetUserId = id;
+            document.getElementById('delete-modal').classList.remove('hidden');
+        }
+
+        function closeModals() {
+            document.getElementById('balance-modal').classList.add('hidden');
+            document.getElementById('delete-modal').classList.add('hidden');
+            targetUserId = null;
+        }
+
+        function confirmBalanceChange(multiplier) {
+            const amountInput = document.getElementById('admin-amount-input');
+            const val = parseInt(amountInput.value);
+
+            if (isNaN(val) || val <= 0) { showToast("Введіть коректне число!", true); return; }
+
+            const db = getUsersDB();
+            if (db[targetUserId]) {
+                const change = val * multiplier;
+                db[targetUserId].balance += change;
+                if(db[targetUserId].balance < 0) db[targetUserId].balance = 0;
+                
+                db[targetUserId].history.push({
+                    type: change >= 0 ? 'in' : 'out',
+                    amount: Math.abs(change),
+                    from: 'ADMIN_OP',
+                    to: 'ADMIN_OP',
+                    date: new Date().toISOString()
+                });
+                
+                saveUsersDB(db);
+                showToast(`Баланс змінено!`);
+                closeModals();
+                renderAdminPanel();
+            }
+        }
+
+        function confirmDeleteUser() {
+            const db = getUsersDB();
+            if (db[targetUserId]) {
+                delete db[targetUserId];
+                saveUsersDB(db);
+                showToast("Користувача видалено! 🧨");
+                closeModals();
+                renderAdminPanel();
+            }
+        }
+
+        function renderAdminPanel() {
+            const list = document.getElementById('admin-user-list');
+            list.innerHTML = '';
+            const db = getUsersDB();
+            const users = Object.values(db);
+
+            if (users.length === 0) {
+                list.innerHTML = '<div class="text-center text-xl text-gray-600">No users found.</div>';
+                return;
+            }
+
+            users.forEach(u => {
+                const div = document.createElement('div');
+                div.className = `mc-inset p-3 flex flex-col md:flex-row justify-between items-center gap-4 ${u.isFrozen ? 'frozen-overlay' : 'bg-[#8b8b8b]'}`;
+                div.innerHTML = `
+                    <div class="flex flex-col min-w-[150px]">
+                        <span class="text-2xl font-bold text-white">${u.username}</span>
+                        <span class="text-gray-300 font-mono text-sm">${u.walletId}</span>
+                        <span class="text-xs text-gray-400">Pass: ${u.password}</span>
+                    </div>
+                    <div class="flex items-center gap-2 bg-[#373737] p-2 rounded mc-border border-0">
+                        <span class="text-yellow-400 text-xl">💎</span>
+                        <span class="text-2xl text-white font-mono w-[80px] text-right">${u.balance}</span>
+                    </div>
+                    <div class="flex gap-2">
+                        <button onclick="openBalanceModal('${u.walletId}')" class="mc-btn px-3 py-1 font-bold bg-[#3498db] text-white border-[#2980b9]">EDIT 💎</button>
+                        <button onclick="adminToggleFreeze('${u.walletId}')" class="mc-btn px-3 py-1 font-bold ${u.isFrozen ? 'text-blue-200 bg-blue-800' : 'text-gray-700'}">
+                            ${u.isFrozen ? '❄️ UNFREEZE' : '❄️ FREEZE'}
+                        </button>
+                        <button onclick="openDeleteModal('${u.walletId}')" class="mc-btn mc-btn-red px-3 py-1 font-bold">🧨</button>
+                    </div>
+                `;
+                list.appendChild(div);
+            });
+        }
+
+        function adminToggleFreeze(id) {
+            const db = getUsersDB();
+            if (db[id]) {
+                db[id].isFrozen = !db[id].isFrozen;
+                saveUsersDB(db);
+                renderAdminPanel();
+                showToast(`Статус заморозки: ${db[id].isFrozen}`);
+            }
+        }
     </script>
 </body>
 </html>
